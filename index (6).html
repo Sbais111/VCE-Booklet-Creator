@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Build a ready-to-paste Claude prompt that creates a VCE Physical Education or Health and Human Development retrieval practice booklet and a separate Teacher Answer Guide.">
+<title>VCE Booklet Prompt Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+html{-webkit-text-size-adjust:100%}
+body{margin:0}
+img{max-width:100%}
+/* Layout: navy masthead, then a two-column workspace (form left, sticky summary right) that stacks on phones */
+:root{
+  --bg:#F5F6F9; --surface:#FFFFFF; --surface-2:#EEF1F6; --line:#D9DEE8;
+  --fg:#1B2333; --muted:#5A6478; --navy:#1F3864; --navy-ink:#FFFFFF;
+  --gold:#C08110; --gold-soft:#FBF2DF; --teal:#2E6466; --teal-soft:#E3EFEF;
+  --d1:#B4502E; --d2:#1E5C8D; --d3:#5C3D89; --ok:#2E7D5F; --warn:#A35A00;
+  --focus:#C08110; --focus-ring:rgba(192,129,16,.25); --code-bg:#F7F8FB; --gold-text:#9A6608; --navy-ink-2:#1F3864;
+  --f-display:"Lexend", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1522; --surface:#172033; --surface-2:#1E2A40; --line:#2C3A55;
+  --fg:#E6EAF2; --muted:#9AA6BC; --navy:#1A2E54; --navy-ink:#FFFFFF;
+  --gold:#E2A93B; --gold-soft:#3A2E14; --teal:#6FB5B7; --teal-soft:#183334;
+  --d1:#E07A57; --d2:#5B9BD0; --d3:#A587D6; --ok:#5FBF95; --warn:#E9A04B;
+  --focus:#E2A93B; --focus-ring:rgba(226,169,59,.3); --code-bg:#111A2B; --gold-text:#E2A93B; --navy-ink-2:#1F3864; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1522; --surface:#172033; --surface-2:#1E2A40; --line:#2C3A55;
+  --fg:#E6EAF2; --muted:#9AA6BC; --navy:#1A2E54; --navy-ink:#FFFFFF;
+  --gold:#E2A93B; --gold-soft:#3A2E14; --teal:#6FB5B7; --teal-soft:#183334;
+  --d1:#E07A57; --d2:#5B9BD0; --d3:#A587D6; --ok:#5FBF95; --warn:#E9A04B;
+  --focus:#E2A93B; --focus-ring:rgba(226,169,59,.3); --code-bg:#111A2B; --gold-text:#E2A93B; --navy-ink-2:#1F3864; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
+/* masthead */
+.mast{background:var(--navy);color:var(--navy-ink);border-bottom:4px solid var(--gold)}
+.mast .wrap{padding-block:36px 30px;display:grid;gap:22px}
+.eyebrow{font-family:var(--f-display);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:600}
+.mast h1{font-size:clamp(28px,4.2vw,42px);font-weight:600;line-height:1.1;margin-top:8px}
+.mast p.lede{max-width:64ch;margin:10px 0 0;color:#C9D3E6;font-size:17px}
+.steps{display:flex;flex-wrap:wrap;gap:10px;list-style:none;padding:0;margin:0}
+.steps li{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:7px 16px 7px 7px;font-size:15px;color:#E9EEF7}
+.steps b{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--gold);color:#1F1A10;font-family:var(--f-display);font-size:13px}
+/* workspace */
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:28px;padding-block:30px 60px;align-items:start}
+@media (max-width:940px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.panel+.panel{margin-top:22px}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;padding:18px 22px;border-bottom:1px solid var(--line)}
+.panel-head .num{white-space:nowrap;font-family:var(--f-display);font-weight:600;color:var(--gold);font-size:14px;letter-spacing:.06em}
+.panel-head h2{font-size:19px;font-weight:600;color:var(--fg)}
+.panel-head .hint{margin-left:auto;font-size:13px;color:var(--muted)}
+.panel-body{padding:20px 22px 24px;display:grid;gap:18px}
+.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:600px){.row{grid-template-columns:minmax(0,1fr)}}
+label.f{display:grid;gap:6px;font-weight:600;font-size:14px;color:var(--fg)}
+label.f small{font-weight:400;color:var(--muted);font-size:13px}
+input[type=text],textarea{width:100%;font:inherit;font-size:15px;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:10px 12px;transition:border-color .15s, box-shadow .15s}
+textarea{resize:vertical;line-height:1.5}
+input::placeholder,textarea::placeholder{color:var(--muted);opacity:.75}
+input:focus,textarea:focus{outline:none;border-color:var(--focus);box-shadow:0 0 0 3px var(--focus-ring)}
+.req{color:var(--gold);margin-left:2px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;width:max-content;max-width:100%}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:9px 16px;font-size:15px;cursor:pointer;color:var(--muted);border-right:1px solid var(--line);font-weight:500}
+.seg label:last-of-type{border-right:0}
+.seg input:checked+label{background:var(--teal);color:#fff}
+.seg input:focus-visible+label{outline:2px solid var(--focus);outline-offset:-2px}
+.domains{display:grid;gap:10px}
+.dom{display:grid;grid-template-columns:auto minmax(0,1fr) 150px;gap:12px;align-items:center}
+@media (max-width:600px){.dom{grid-template-columns:auto minmax(0,1fr)}.dom input.ref{grid-column:2}}
+.dom .sw{width:34px;height:34px;border-radius:6px;display:grid;place-items:center;color:#fff;font-family:var(--f-display);font-weight:600;font-size:14px}
+.note{font-size:14px;color:var(--muted);margin:0}
+.notes-box{position:relative}
+.notes-box textarea{min-height:300px;font-family:var(--f-mono);font-size:13px}
+.counter{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:3px 10px;border-radius:999px;background:var(--surface-2);color:var(--muted)}
+.chip.ok{background:var(--teal-soft);color:var(--teal)}
+/* outputs */
+.files{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:600px){.files{grid-template-columns:minmax(0,1fr)}}
+.file{border:1px solid var(--line);border-radius:8px;padding:16px 16px 14px;background:var(--surface)}
+.file .tag{font-family:var(--f-display);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600}
+.file h3{font-size:16px;font-weight:600;margin:4px 0 8px}
+.file ul{margin:0;padding-left:18px;font-size:14px;color:var(--muted);display:grid;gap:3px}
+.file.s{border-top:3px solid var(--navy)} .file.s .tag{color:var(--d2)}
+.file.t{border-top:3px solid var(--gold)} .file.t .tag{color:var(--gold)}
+details.fixed{border:1px solid var(--line);border-radius:8px;background:var(--surface-2)}
+details.fixed summary{cursor:pointer;padding:12px 16px;font-weight:600;font-size:15px;list-style:none;display:flex;justify-content:space-between;gap:12px}
+details.fixed summary::-webkit-details-marker{display:none}
+details.fixed summary span{font-weight:400;color:var(--muted);font-size:13px}
+details.fixed pre{margin:0;max-height:420px;overflow:auto;padding:16px;border-top:1px solid var(--line);background:var(--code-bg);font-family:var(--f-mono);font-size:12px;line-height:1.55;white-space:pre-wrap;color:var(--fg)}
+/* sidebar */
+aside{position:sticky;top:calc(env(safe-area-inset-top,0px) + 20px);display:grid;gap:16px}
+@media (max-width:940px){aside{position:static}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px}
+.card h3{font-size:15px;font-weight:600;margin-bottom:12px}
+.check{list-style:none;padding:0;margin:0 0 18px;display:grid;gap:8px;font-size:14px}
+.check li{display:flex;gap:10px;align-items:flex-start;color:var(--muted)}
+.check li i{flex:none;width:18px;height:18px;border-radius:50%;border:2px solid var(--line);margin-top:2px;display:grid;place-items:center;font-style:normal;font-size:11px;font-weight:700}
+.check li.done{color:var(--fg)}
+.check li.done i{background:var(--ok);border-color:var(--ok);color:#fff}
+.check li.opt i{border-style:dashed}
+button{font:inherit;cursor:pointer}
+.btn{width:100%;border:0;border-radius:8px;padding:14px 18px;font-family:var(--f-display);font-weight:600;font-size:16px;display:flex;align-items:center;justify-content:center;gap:10px;transition:transform .08s, background .15s}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--gold);color:#1F1A10}
+.btn.primary:hover{filter:brightness(.92)}
+.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line);font-size:14px;padding:10px 14px}
+.btn.ghost:hover{background:var(--surface-2)}
+.btn:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.btns{display:grid;gap:10px}
+.btns .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.status{font-size:13px;color:var(--muted);min-height:20px;text-align:center}
+.status.ok{color:var(--ok);font-weight:600}
+.status.warn{color:var(--warn)}
+.tips{font-size:14px;color:var(--muted);display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.tips li{padding-left:14px;border-left:2px solid var(--teal-soft)}
+.tips b{color:var(--fg);font-weight:600}
+.meta{font-size:12px;color:var(--muted);font-family:var(--f-mono)}
+/* preview dialog */
+.preview{position:fixed;inset:0;background:rgba(11,16,32,.6);display:grid;place-items:center;z-index:50;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.preview .box{background:var(--surface);border-radius:12px;width:min(900px,100%);max-height:88vh;display:grid;grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden;border:1px solid var(--line)}
+.preview header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.preview header h3{font-size:16px}
+.preview pre{margin:0;overflow:auto;padding:18px;font-family:var(--f-mono);font-size:12px;line-height:1.55;white-space:pre-wrap;background:var(--code-bg);color:var(--fg)}
+.preview footer{display:flex;gap:10px;justify-content:flex-end;padding:12px 18px;border-top:1px solid var(--line);flex-wrap:wrap}
+.preview footer .btn{width:auto}
+footer.site{border-top:1px solid var(--line);padding-block:20px;font-size:13px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* VCE additions */
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.subjects{display:flex;flex-wrap:wrap;gap:10px}
+.subj{display:grid;gap:2px;text-decoration:none;color:#E9EEF7;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);border-radius:10px;padding:10px 18px 11px;min-width:220px;transition:background .15s,border-color .15s}
+.subj:hover{background:rgba(255,255,255,.12)}
+.subj:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.subj-k{font-family:var(--f-display);font-size:11px;letter-spacing:.14em;color:#AFC0DD;font-weight:600}
+.subj-n{font-family:var(--f-display);font-size:17px;font-weight:600}
+.subj.on{background:#FFFFFF;color:var(--navy-ink-2);border-color:#FFFFFF;box-shadow:inset 0 -4px 0 var(--gold)}
+.subj.on .subj-k{color:#9A6608}
+@media (max-width:600px){.subj{min-width:0;flex:1 1 100%}}
+.sd-strip{background:var(--surface);border-bottom:1px solid var(--line)}
+.sd-strip .wrap{padding-block:10px;font-size:13px;color:var(--muted)}
+.subject-pane{display:grid;gap:22px}
+.subject-pane .panel+.panel{margin-top:0}
+.fieldset{display:grid;gap:8px}
+.lbl{font-weight:600;font-size:14px}
+.lbl small{font-weight:400;color:var(--muted);font-size:13px}
+.units{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:760px){.units{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.units input,.aos input{position:absolute;opacity:0;pointer-events:none}
+.unit{display:grid;gap:4px;align-content:start;border:1px solid var(--line);border-radius:8px;padding:12px;cursor:pointer;background:var(--surface);transition:border-color .15s,background .15s;min-height:100%}
+.unit:hover,.aos-opt:hover{border-color:var(--teal)}
+.unit-n{font-family:var(--f-display);font-weight:600;font-size:15px;color:var(--fg)}
+.unit-t{font-size:13px;color:var(--muted);line-height:1.35}
+.unit-y{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:4px;font-weight:600}
+.units input:checked+.unit{border-color:var(--teal);background:var(--teal-soft);box-shadow:inset 0 0 0 1px var(--teal)}
+.units input:checked+.unit .unit-n{color:var(--teal)}
+.units input:focus-visible+.unit,.aos input:focus-visible+.aos-opt{outline:3px solid var(--focus);outline-offset:2px}
+.aos{display:grid;gap:8px}
+.aos-opt{display:grid;gap:2px;border:1px solid var(--line);border-radius:8px;padding:11px 14px 12px 40px;cursor:pointer;position:relative;background:var(--surface)}
+.aos-opt::before{content:"";position:absolute;left:14px;top:15px;width:14px;height:14px;border-radius:50%;border:2px solid var(--line);background:var(--surface)}
+.aos input:checked+.aos-opt{border-color:var(--teal);background:var(--teal-soft)}
+.aos input:checked+.aos-opt::before{border-color:var(--teal);background:var(--teal);box-shadow:inset 0 0 0 3px var(--surface)}
+.aos-n{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold-text);font-weight:600;font-family:var(--f-display)}
+.aos-t{font-size:15px;font-weight:600;color:var(--fg)}
+.row1{margin-top:-10px}
+.linkbtn{background:none;border:0;padding:0;color:var(--teal);font-size:13px;font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.linkbtn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+textarea.notes{min-height:280px;font-family:var(--f-mono);font-size:13px}
+.dom{grid-template-columns:auto minmax(0,1fr)!important}
+.assure{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:600px){.assure{grid-template-columns:minmax(0,1fr)}}
+.assure>div{display:grid;gap:4px;padding:12px 14px;border-radius:8px;background:var(--teal-soft);border:1px solid var(--line)}
+.assure-k{font-family:var(--f-display);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);font-weight:600}
+.assure-t{font-size:14px;color:var(--fg);line-height:1.45}
+</style>
+</head>
+<body>
+<header class="mast">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">VCE · Retrieval &amp; Application Practice · Resource builder</div>
+      <h1>VCE Practice Booklet Prompt Builder</h1>
+      <p class="lede">Choose a subject, unit and Area of Study, paste your notes, and copy a ready-to-paste prompt. Claude will use it to build a closed-book practice booklet for students and a separate Teacher Answer Guide, aligned to the current VCAA study design.</p>
+    </div>
+    <nav class="subjects" aria-label="Subject">
+      <a href="#vce-pe" class="subj" id="tab-pe" data-subj="pe">
+        <span class="subj-k">VCE</span>
+        <span class="subj-n">Physical Education</span>
+      </a>
+      <a href="#vce-hhd" class="subj" id="tab-hhd" data-subj="hhd">
+        <span class="subj-k">VCE</span>
+        <span class="subj-n">Health &amp; Human Development</span>
+      </a>
+    </nav>
+  </div>
+</header>
+
+<div class="sd-strip"><div class="wrap"><span id="sdText"></span></div></div>
+
+<main class="wrap grid">
+  <div id="forms"></div>
+
+  <aside aria-label="Copy prompt">
+    <div class="card">
+      <h3>Ready to copy?</h3>
+      <ul class="check" id="checklist"></ul>
+      <div class="btns">
+        <button class="btn primary" id="copyBtn" type="button">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+          Copy full prompt
+        </button>
+        <div class="two">
+          <button class="btn ghost" id="previewBtn" type="button">Preview</button>
+          <button class="btn ghost" id="exampleBtn" type="button">Load example</button>
+        </div>
+        <button class="btn ghost" id="clearBtn" type="button">Clear this subject</button>
+      </div>
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+      <div class="meta" id="meta"></div>
+    </div>
+    <div class="card">
+      <h3>Before you paste</h3>
+      <ul class="tips">
+        <li><b>Use Claude with file creation on.</b> It needs to build and send back Word files.</li>
+        <li><b>One Area of Study per chat.</b> Start a new conversation for each booklet.</li>
+        <li><b>Paste key knowledge.</b> Copying the dot points from the study design keeps questions inside the course.</li>
+        <li><b>Turn on web search.</b> It lets Claude look up past VCAA exams and examination reports.</li>
+        <li><b>Drafts stay in this browser.</b> Each subject keeps its own draft on this device only.</li>
+      </ul>
+    </div>
+  </aside>
+</main>
+
+<footer class="site"><div class="wrap">Unit titles, Areas of Study and outcome statements follow the VCAA VCE Physical Education and VCE Health and Human Development study designs (accredited 2025–2029). Always check against the current study design on the VCAA website.</div></footer>
+
+<div class="preview" id="preview" hidden role="dialog" aria-modal="true" aria-labelledby="pv-h">
+  <div class="box">
+    <header><h3 id="pv-h">Full prompt preview</h3><button class="btn ghost" id="pvClose" type="button" style="width:auto">Close</button></header>
+    <pre id="pvText" tabindex="0"></pre>
+    <footer><button class="btn primary" id="pvCopy" type="button" style="width:auto">Copy full prompt</button></footer>
+  </div>
+</div>
+
+<script type="text/plain" id="fixedText">################################################################
+PART C — WHAT TO BUILD  (do not edit)
+################################################################
+
+You are an experienced {SUBJECT} teacher and VCAA assessor in
+Victoria, Australia. Create TWO Word documents (.docx) for the unit,
+Area of Study and outcome in PART A:
+
+  FILE 1: {SHORT}_Unit[N]_AoS[N]_[Topic focus]_Student_Booklet.docx
+  FILE 2: {SHORT}_Unit[N]_AoS[N]_[Topic focus]_Teacher_Answer_Guide.docx
+
+The student booklet is a closed-book retrieval and application
+practice booklet. It has NO teaching content of its own. Students use
+it AFTER they have completed their notes on this Area of Study.
+
+GROUND RULES FOR CONTENT
+- Align every question with the current VCAA {SUBJECT} Study Design
+  (accredited 2025–2029). Use the outcome statement and the key
+  knowledge and key skills in PART A. Stay inside that Area of Study's
+  key knowledge, except in Session 3, which may link to other Areas of
+  Study in the same unit.
+- Base every question, answer and marking guide on PART B or on
+  standard content at this level of the study design. Do not invent
+  content that isn't in the study design.
+- Draw on past VCAA questions and exemplars (see "USE PAST VCAA
+  EXAMS AND EXEMPLARS" below).
+- Use VCAA command terms and Australian spelling. Prefer Identify,
+  Describe, Outline, Explain, Analyse, Compare, Discuss, Evaluate,
+  Justify, Apply{EXTRA_TERMS}. Every question must make clear how many
+  points or how much depth is needed for the marks shown.
+- {DATA_RULE}
+- Check that every calculation in the answers is arithmetically
+  correct.
+- Assessment context: {ASSESS_CONTEXT}
+- If PART B contains an error, correct it and tell me what you
+  changed.
+- If PART A is incomplete, make a sensible choice, state it at the
+  start, and carry on. Don't stop to ask.
+
+USE PAST VCAA EXAMS AND EXEMPLARS (important)
+1. Use the VCAA material in PART B first: past exam questions,
+   examination reports, sample exams and SAC tasks.
+2. If you can search the web, also look up the VCAA {SUBJECT} page
+   "Examination specifications, past examinations and examination
+   reports" on vcaa.vic.edu.au. Use, in this order:
+   a. the current study design's sample examination, examinations
+      and examination reports (2025 onwards)
+   b. earlier examinations and reports (2018–2024), but only for
+      questions whose content is still in the current key knowledge
+3. Model the booklet on this material:
+   - question wording, command terms and stimulus style
+   - mark allocations and the depth expected for each mark
+   - common errors that examination reports describe
+   - what the reports say "responses that scored highly" did
+4. Write NEW questions in that style. Don't copy whole VCAA
+   questions. Where a question is closely adapted from one, add a
+   reference in the Teacher Answer Guide, e.g. "Adapted from VCAA
+   2023 exam, Section B, Q4".
+5. Base Worked Example model responses and the extended-response
+   sample on VCAA high-scoring exemplars and report commentary.
+6. Never invent a VCAA source, year, question number or quote. If
+   you can't find relevant VCAA material, say so in your summary and
+   use the study design alone.
+
+----------------------------------------------------------------
+FILE 1 — STUDENT BOOKLET (in this order)
+----------------------------------------------------------------
+1. COVER (text and colour only, no images), centred:
+   - "{SUBJECT_UPPER}" in navy, bold, letter-spaced
+   - "VCAA Study Design 2025–2029" in grey
+   - A short gold line
+   - "Unit [N] · Area of Study [N]", then the topic focus, both large,
+     bold and gold
+   - The Area of Study title in small grey text
+   - The outcome statement in italics
+   - "RETRIEVAL & APPLICATION PRACTICE BOOKLET" in navy
+   - "Built around five techniques from Make It Stick: The Science of
+     Successful Learning" in bold italic teal
+   - "For use AFTER you have completed your notes on Unit [N] Area of
+     Study [N]" in italics
+   - Name: ______  Class: ______  Date: ______
+
+2. HOW THIS BOOKLET WORKS — AND WHY
+   Start with this exact intro:
+   "This booklet is deliberately built around five techniques from
+   Make It Stick, the research-backed book on how learning actually
+   works. Passive re-reading of notes feels productive but barely
+   improves long-term memory — these techniques are less
+   comfortable, but they work."
+   Then five separately coloured boxes, each with a thick coloured
+   left edge:
+   🧠 1. Generate first — guessing before reading primes deeper learning
+   🔁 2. Retrieve, don't re-read — closed-note testing beats re-reading
+   📅 3. Space it out — follow the spacing plan, don't cram in one sitting
+   🔀 4. Interleave — the review sections deliberately mix domains
+   🎯 5. Calibrate — confidence ratings surface false confidence from re-reading
+
+3. YOUR SPACING PLAN
+   A grey table of three sessions with a "Date done" column:
+   - Session 1 (today): all domains in order.
+   - Session 2 (2–4 days later): Interleaved Review.
+   - Session 3 (1–2 weeks later): Final Mixed Test, timed at about
+     1.2 minutes per mark (VCAA exam pace).
+
+4. HOW TO ANSWER: VCAA COMMAND TERMS
+   A table with three columns: term, what it asks you to do, answer
+   tip. Use the definitions from the VCAA glossary of command terms.
+
+5. ONE SECTION PER DOMAIN (2–3 domains). Each domain is a group of
+   related key knowledge dot points from the Area of Study and starts
+   on a new page. Each domain contains, in this order:
+   a. Domain header bar (in the domain colour), with the key
+      knowledge it covers underneath
+   b. Generate First: 2 prediction prompts with writing lines, in a
+      box tinted in the domain colour
+   c. Quick Recall — closed notes: 5–6 short questions with 2 lines each
+   d. Self-check: a grey box of answers, placed directly after
+      Quick Recall, with "My score: __ / N"
+   e. Worked Example: one VCAA exam-style question
+      - a 3-column table: ✔ mark number | high-scoring model response
+        | why it earns the mark
+      - the header row in the domain colour
+      - an "Assessor tip" underneath, in the voice of a VCAA
+        examination report
+   f. Guided Application: one realistic scenario and 3–4
+      fill-in-the-blank prompts that build step by step
+   g. Skill Check — Data Analysis: {SKILL_DATA}, then three
+      sub-questions:
+      - (a) Identify [1]
+      - (b) Describe or Calculate [2]
+      - (c) Analyse / Explain / Evaluate [3–4]
+   h. Multiple Choice Questions: 4–5 questions
+      - options A–D, each on its own line
+      - a grey answer key with a one-line reason for each answer
+   i. Independent Practice: 2 unscaffolded VCAA exam-style questions,
+      worth [4]–[6] each
+   j. Reflection + Confidence Check
+      - 2–3 self-reflection prompts
+      - ☐ HIGH ☐ MEDIUM ☐ LOW
+      - in a light blue box
+
+6. SESSION 2 — INTERLEAVED REVIEW
+   - 12 short questions drawn from all domains, shuffled (not grouped
+     by domain).
+   - Each question is tagged with its domain, e.g. [ENERGY SYSTEMS],
+     in that domain's colour.
+   - Each question has 3 lines and a confidence line.
+   - End with "Score: __ / 12" and "Check your answers with your
+     teacher".
+
+7. SESSION 3 — FINAL MIXED TEST
+   - 3 exam-conditions questions. Each must combine content from 2 or
+     more domains, and shows "Draws on: Domains X + Y".
+   - Question 1 is short answer [4].
+   - Question 2 is a VCAA-style extended response [8]–[10], with a
+     stimulus or case study and a planning space.
+   - Question 3 is data- or case-based [5].
+   - Finish with an "After marking" reflection box.
+
+The student booklet must NOT contain marking guides for Guided
+Application, Skill Check, Independent Practice, Interleaved Review or
+the Final Mixed Test.
+
+----------------------------------------------------------------
+FILE 2 — TEACHER ANSWER GUIDE (in this order)
+----------------------------------------------------------------
+1. Cover in the same style as the student booklet, but titled
+   "TEACHER ANSWER GUIDE", with "Teacher copy — not for distribution
+   to students". Also add "not for student distribution" to the
+   footer of every page.
+2. "How to use this guide": a short table showing which answers are
+   in which section.
+3. For each domain, starting on a new page:
+   - Quick Recall answers
+   - MCQ key with reasons
+   - Guided Application accepted answers (every blank, in order)
+   - Skill Check marking guide
+   - Independent Practice marking guide
+4. Session 2: a model answer for all 12 Interleaved Review questions.
+5. Session 3: the Final Mixed Test marking guide.
+
+MARKING GUIDE STYLE (VCAA conventions)
+- For each question, give "Possible answers" as dot points, with
+  ✔ = 1 mark.
+- Give more creditable points than the marks available.
+- Show how marks are split between parts of a question (e.g.
+  1 mark for identifying + 1 mark for explaining).
+- Add a short "Responses that scored highly…" note, written as in a
+  VCAA examination report.
+- For the extended response, give a VCAA-style holistic marking
+  rubric with mark bands and descriptors, then a high-scoring sample
+  response.
+- For calculations, show the working and the answer with units.
+
+
+################################################################
+PART D — DESIGN & BUILD RULES  (do not edit)
+################################################################
+
+STYLE
+- Paper: A4. Margins: 2 cm. Font: Calibri throughout (set it as the
+  document default).
+- Colours (hex):
+  - Navy 1F3864: main section bars and accents
+  - Gold C08110: cover title and Final Mixed Test bars
+  - Teal 2E6466: in-domain subheadings and box titles
+  - Grey F0F0F0: answer and Self-check boxes
+  - Reflection box: background EAF1F9, border 9DC3E6
+  - Generate-first technique box: background DCEEEA, edge 2E7D5F
+- Domain colours (bar / pale tint):
+  - Domain 1: B4502E / FBEAE3 (rust)
+  - Domain 2: 1E5C8D / E7F2F8 (blue)
+  - Domain 3: 5C3D89 / F1E8FB (purple)
+- Main section headers are full-width solid colour bars with white
+  bold text:
+  - navy for general sections
+  - the domain colour for domain headers
+- In-domain subheadings are teal bold text with a thin teal
+  underline, not bars.
+- Every "[N marks]" label for Skill Check and Independent Practice is
+  its own full-width bar with the text right-aligned:
+  - the domain colour inside domains
+  - gold in the Final Mixed Test
+- Self-check and Reflection boxes stay grey and light blue in every
+  domain. Only Generate First and the Worked Example header use the
+  domain colour.
+- Writing lines are thin grey bottom borders on fixed-height
+  paragraphs, not tables.
+- Footer on every page except the cover: the topic name on the left
+  and the page number on the right.
+
+KEEP SECTIONS TOGETHER (important)
+- No subsection may split across two pages. Wrap each whole
+  subsection in a single-cell, borderless table whose row cannot
+  split across pages. Do this for:
+  - Generate First (together with the domain header)
+  - Quick Recall + Self-check
+  - Worked Example
+  - Guided Application
+  - Skill Check
+  - MCQ + answer key
+  - Independent Practice
+  - Reflection
+- Each question, its mark bar and its answer lines must also stay
+  together.
+- If a section doesn't fit on the rest of a page, move the whole
+  section to the next page. Shorten answer lines slightly if needed
+  so that every section fits on one page.
+
+BUILD
+- Build with the docx npm package (it's already installed; don't run
+  npm install).
+- Use ShadingType.CLEAR for all shading.
+- Set columnWidths on every table and a width on every cell, in DXA.
+- Put every PageBreak inside a Paragraph.
+
+TRIPLE FACT-CHECK BEFORE SENDING (don't skip any check)
+Do three separate checks. Fix every problem before moving on to the
+next check.
+
+CHECK 1 — CONTENT ACCURACY
+Go through every question, answer, model response, MCQ option and
+data table. Check each fact against:
+- the VCAA study design key knowledge
+- PART B
+- reliable sources (VCAA, AIHW, ABS, WHO, ACSM, Sport Australia)
+Then:
+- Remove anything outside the study design.
+- Remove anything you can't verify.
+- Correct out-of-date terms or figures.
+
+CHECK 2 — ANSWERS AND MARKING
+Re-answer every question from scratch without looking at your answer
+key, then compare the two. Check that:
+- every MCQ has exactly one correct option and three plausible but
+  clearly wrong options
+- every calculation gives the same result when worked a second time,
+  with correct units
+- marks match the command term and the depth required
+- each marking guide has enough creditable points for the marks
+- every Guided Application blank has a single defensible answer
+
+CHECK 3 — INDEPENDENT REVIEW
+- If you can run a separate agent, use one that hasn't seen your
+  working to review both files. If you can't, do a fresh full read of
+  both documents as a VCAA assessor would.
+- Check that every question matches VCAA style, command terms and
+  mark allocations, and that student and teacher files line up
+  question by question.
+- Check that every VCAA reference is real and correctly cited.
+- Check that the student booklet contains no answers it shouldn't.
+
+Then check the layout:
+- Convert both files to PDF and render every page as an image.
+- Look at each page and check colours, spacing, that nothing is cut
+  off, and that no section is split across pages.
+- Fix any problems and render again.
+
+FINAL SUMMARY
+Send both .docx files, then give me a short summary covering:
+- the domains you chose and the key knowledge each one covers
+- the VCAA exams, reports and exemplars you drew on (with years), or
+  a statement that none were available
+- the fact-check results: what each of the three checks found and
+  fixed
+- any errors you corrected in my notes
+- anything I should double-check against the study design
+</script>
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const FIXED = $('fixedText').textContent.trim();
+  const STEM = 'On completion of this unit, the student should be able to ';
+
+  const SUBJECTS = {
+    pe: {
+      key: 'pe', hash: 'vce-pe', name: 'VCE Physical Education', upper: 'VCE PHYSICAL EDUCATION', short: 'VCE_PE',
+      sd: 'VCAA VCE Physical Education Study Design · accredited 2025–2029 · Units 3–4: 2 SACs + end-of-year examination',
+      extraTerms: ', Interpret',
+      dataRule: 'Use realistic sporting contexts and primary data typical of VCE PE practical activities (e.g. heart rate, oxygen uptake, blood lactate, fitness test results, movement analysis). Constructed data must be physiologically realistic.',
+      skillData: 'a small, realistic constructed data set from a practical activity (e.g. heart rate, oxygen uptake, blood lactate or fitness test results, or a movement analysis)',
+      units: {
+        1: { title: 'The human body in motion', aos: [
+          { t: 'How does the musculoskeletal system work to produce movement?', o: 'On completion of this unit, the student should participate in and analyse information from a variety of practical activities to explain how the muscular and skeletal systems function and interact to produce movement, and evaluate the use of performance enhancement substances and methods.' },
+          { t: 'What role does the cardiorespiratory system play in movement?', o: STEM + 'participate in and analyse information from a variety of practical activities to explain how the cardiovascular and respiratory systems function and interact, and evaluate the use of performance enhancement substances and methods.' } ] },
+        2: { title: 'Physical activity, sport, exercise and society', aos: [
+          { t: 'How do physical activity, sport and exercise contribute to healthy lifestyles?', o: STEM + 'collect and analyse data related to individual and population levels of participation in physical activity and sedentary behaviour and conduct an FMA to create, undertake and evaluate a personalised plan that promotes adherence to the relevant physical activity and sedentary behaviour guidelines.' },
+          { t: 'What are the contemporary issues associated with physical activity and sport?', o: STEM + 'explain a range of intrapersonal and interpersonal contemporary issues that influence access to, and inclusion, participation and performance in, physical activity and sport at the local, national and global levels.' } ] },
+        3: { title: 'Movement skills and energy for physical activity, sport and exercise', aos: [
+          { t: 'How are movement skills improved?', o: STEM + 'analyse primary data collected from participation in physical activity, sport and exercise to develop and refine movement skills from an individual and coaching perspective, by applying biomechanical and skill-acquisition principles.' },
+          { t: 'How does the body produce energy?', o: STEM + 'use data collected in practical activities to analyse how the major body and energy systems work together to enable movements to occur; explain the factors causing fatigue; and recommend suitable recovery strategies.' } ] },
+        4: { title: 'Training to improve performance', aos: [
+          { t: 'What are the foundations of an effective training program?', o: STEM + 'undertake an activity analysis to justify the physiological requirements of an activity that informs an appropriate assessment of fitness.' },
+          { t: 'How is training implemented effectively to improve fitness?', o: STEM + 'participate in a variety of training methods; design and evaluate training programs; and explain performance improvements that occur due to chronic adaptations, depending on the type of training undertaken.' },
+          { t: 'Integrated movement experiences', o: STEM + 'integrate theory and practice that enables them to analyse the interrelationships between skill acquisition, biomechanics, energy production and training, and the impacts these have on performance.' } ] }
+      },
+      example: { unit: 3, aos: 2, topic: 'Energy systems, fatigue and recovery',
+        kk: '- the characteristics of the three energy systems (ATP-CP, anaerobic glycolysis and aerobic) for physical activity, including rate of ATP production, the yield of each energy system, fuels used, and the contribution of each system\n- the interplay of energy systems relative to intensity and duration of activity\n- fatigue/limiting factors: fuel depletion, accumulation of metabolic by-products, thermoregulation\n- recovery strategies: active recovery, nutritional and hydration strategies',
+        d: ['Energy Systems', 'Energy System Interplay', 'Fatigue & Recovery'],
+        notes: '[EXAMPLE NOTES — replace with your own]\n\nATP-CP: fuel = creatine phosphate; very fast rate; yield 0.7–1 ATP per PC; dominant 0–10 s max intensity\nAnaerobic glycolysis: fuel = glycogen; fast rate; ~2–3 ATP per glucose; by-products H+ / lactate\nAerobic: fuels = CHO, fats (protein in extreme cases); slow rate; ~36–38 ATP per glucose; by-products CO2, H2O, heat\nInterplay: all systems contribute at all times; the predominant system depends on intensity and duration\nFatigue: fuel depletion (PC, glycogen); metabolic by-products (H+, Pi, ADP); thermoregulation (increased core temperature, sweat loss)\nRecovery: active recovery to remove H+; rehydration; CHO replenishment (high GI immediately after); protein for muscle repair\n\nVCAA-style question: Using the data, explain why the 400 m runner fatigued in the final 100 m. (4 marks)'
+      }
+    },
+    hhd: {
+      key: 'hhd', hash: 'vce-hhd', name: 'VCE Health and Human Development', upper: 'VCE HEALTH AND HUMAN DEVELOPMENT', short: 'VCE_HHD',
+      sd: 'VCAA VCE Health and Human Development Study Design · accredited 2025–2029 · Units 3–4: SACs 50% + end-of-year examination 50%',
+      extraTerms: ', Interpret, Propose',
+      dataRule: 'Use Australian and global contexts that suit the Area of Study. Only use real statistics (e.g. AIHW, ABS, WHO) when they appear in PART B; otherwise create clearly labelled hypothetical data and say so on the page.',
+      skillData: 'a small health data table or graph description (e.g. health status indicators, burden of disease, dietary intake or SDG indicators), using real data only if it is in PART B, otherwise clearly labelled as hypothetical',
+      units: {
+        1: { title: 'Understanding health and wellbeing', aos: [
+          { t: 'Concepts of health', o: STEM + 'explain multiple dimensions of health and wellbeing, explain indicators used to measure health status and analyse sociocultural factors that contribute to variations in the health status of youth.' },
+          { t: 'Youth health and wellbeing', o: STEM + 'interpret data to identify key areas for improving youth health and wellbeing, and analyse one youth health area in detail.' },
+          { t: 'Health and nutrition', o: STEM + 'apply nutrition information, food selection models and initiatives to evaluate nutrition information.' } ] },
+        2: { title: 'Managing health and development', aos: [
+          { t: 'Developmental transitions', o: STEM + 'explain developmental changes in the transition from youth to adulthood, analyse factors that contribute to healthy development during the prenatal and early childhood stages of the human lifespan and explain health and wellbeing as an intergenerational concept.' },
+          { t: 'Youth health literacy', o: STEM + 'explain factors affecting access to Australia’s health system that contribute to health literacy and promote the health and wellbeing of youth.' } ] },
+        3: { title: 'Australia’s health in a globalised world', aos: [
+          { t: 'Understanding health and wellbeing', o: STEM + 'explain the complex, dynamic and global nature of health and wellbeing, interpret and apply Australia’s health status data, and analyse variations in health status.' },
+          { t: 'Promoting health in Australia', o: STEM + 'explain changes to public health approaches, analyse improvements in population health over time and evaluate health promotion strategies and initiatives.' } ] },
+        4: { title: 'Health and human development in a global context', aos: [
+          { t: 'Global health and human development', o: STEM + 'analyse similarities and differences in health status and human development globally and analyse the factors that contribute to these differences.' },
+          { t: 'Health and the Sustainable Development Goals', o: STEM + 'analyse the relationships between the SDGs and their role in the promotion of health and human development, and evaluate the effectiveness of global aid programs.' } ] }
+      },
+      example: { unit: 3, aos: 2, topic: 'Public health approaches and health promotion',
+        kk: '- improvements in Australia’s health status since 1900 and reasons for these improvements\n- the biomedical approach to health and the social model of health\n- the Ottawa Charter for Health Promotion and its action areas and principles\n- health promotion strategies and initiatives, and the role of Medicare, PBS and the NDIS',
+        d: ['Improvements in Health', 'Public Health Approaches', 'Health Promotion & Initiatives'],
+        notes: '[EXAMPLE NOTES — replace with your own]\n\nOld public health (1900s–1970s): improvements in water, sanitation, housing, food supply; led to reduced infectious disease and infant mortality\nBiomedical approach: focuses on individuals, diagnosis and treatment of illness; advantages (technology, treatment) and limitations (expensive, doesn’t promote good health)\nSocial model of health: addresses broader determinants; principles: address broader determinants, act to reduce social inequities, act to enable access, empower individuals and communities, intersectoral collaboration\nOttawa Charter action areas: build healthy public policy; create supportive environments; strengthen community action; develop personal skills; reorient health services; prerequisites: peace, shelter, education...\n\nVCAA-style question: Evaluate the effectiveness of one health promotion initiative in improving health status in Australia, with reference to the Ottawa Charter. (6 marks)'
+      }
+    }
+  };
+
+  const FIELDS = ['topic', 'outcome', 'kk', 'd1', 'd2', 'd3', 'notes'];
+  const KEY = s => 'vce-booklet-prompt-' + s + '-v1';
+  const state = { pe: null, hhd: null };
+  let active = 'pe';
+
+  function blank(subj){ return { unit: 0, aos: 0, topic: '', outcome: '', outcomeEdited: false, kk: '', d1: '', d2: '', d3: '', notes: '' }; }
+  function loadState(s){
+    let v = blank(s);
+    try { const raw = localStorage.getItem(KEY(s)); if (raw) v = Object.assign(v, JSON.parse(raw)); } catch(e) {}
+    return v;
+  }
+  function saveState(s){ try { localStorage.setItem(KEY(s), JSON.stringify(state[s])); } catch(e) {} }
+
+  function esc(t){ return String(t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+  function renderForms(){
+    $('forms').innerHTML = Object.values(SUBJECTS).map(S => `
+      <div class="subject-pane" id="pane-${S.key}" ${S.key === active ? '' : 'hidden'}>
+        <section class="panel" aria-labelledby="h1-${S.key}">
+          <div class="panel-head"><span class="num">STEP 1</span><h2 id="h1-${S.key}">Unit, Area of Study and outcome</h2><span class="hint"><span class="req">*</span> required</span></div>
+          <div class="panel-body">
+            <div class="fieldset">
+              <span class="lbl">Unit<span class="req" aria-hidden="true">*</span></span>
+              <div class="units" role="radiogroup" aria-label="Unit">
+                ${[1,2,3,4].map(u => `
+                  <input type="radio" name="${S.key}-unit" id="${S.key}-u${u}" value="${u}">
+                  <label for="${S.key}-u${u}" class="unit"><span class="unit-n">Unit ${u}</span><span class="unit-t">${esc(S.units[u].title)}</span><span class="unit-y">${u < 3 ? 'Year 11 · school-assessed' : 'Year 12 · SACs + exam'}</span></label>`).join('')}
+              </div>
+            </div>
+            <div class="fieldset">
+              <span class="lbl">Area of Study<span class="req" aria-hidden="true">*</span></span>
+              <div class="aos" id="${S.key}-aos" role="radiogroup" aria-label="Area of Study"><p class="note">Choose a unit first.</p></div>
+            </div>
+            <label class="f" for="${S.key}-outcome"><span>Outcome statement <small id="${S.key}-oc-lbl">filled in from the study design — edit if your school uses different wording</small></span>
+              <textarea id="${S.key}-outcome" rows="4" placeholder="Choose a unit and Area of Study to fill this in."></textarea>
+            </label>
+            <div class="row1"><button type="button" class="linkbtn" id="${S.key}-reset">Reset to study design wording</button></div>
+            <label class="f" for="${S.key}-topic"><span>Topic focus<span class="req" aria-hidden="true">*</span> <small>The booklet’s title, e.g. a part of the Area of Study</small></span>
+              <input type="text" id="${S.key}-topic" autocomplete="off" placeholder="${esc(S.example.topic)}">
+            </label>
+            <label class="f" for="${S.key}-kk"><span>Key knowledge and key skills <small>Optional, but recommended: paste the dot points from the study design that this booklet should cover</small></span>
+              <textarea id="${S.key}-kk" rows="5" placeholder="- ${esc(S.example.kk.split('\n')[0].replace(/^- /,''))}&#10;- …"></textarea>
+            </label>
+            <div class="fieldset">
+              <span class="lbl">Domains <small>(optional: 2–3 groups of key knowledge that organise the booklet)</small></span>
+              <div class="domains">
+                ${[1,2,3].map(n => `<div class="dom"><span class="sw" style="background:var(--d${n})" aria-hidden="true">${n}</span><input type="text" id="${S.key}-d${n}" aria-label="Domain ${n}" placeholder="e.g. ${esc(S.example.d[n-1])}"></div>`).join('')}
+              </div>
+              <p class="note">Leave these blank and Claude will group the key knowledge into sensible domains and tell you what it picked.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="h2-${S.key}">
+          <div class="panel-head"><span class="num">STEP 2</span><h2 id="h2-${S.key}">Source notes</h2><span class="hint"><span class="req">*</span> required</span></div>
+          <div class="panel-body">
+            <p class="note">Paste your class notes, plus any past VCAA exam questions, examination reports, high-scoring exemplar responses or SAC tasks for this Area of Study. Messy formatting is fine. Claude will also look up VCAA past exams and reports itself if it can search the web.</p>
+            <label for="${S.key}-notes" class="sr">Source notes</label>
+            <textarea class="notes" id="${S.key}-notes" placeholder="Paste your notes here…"></textarea>
+            <div class="counter"><span id="${S.key}-wc">0 words</span><span id="${S.key}-pp" class="chip">No VCAA exam material detected yet</span></div>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="h3-${S.key}">
+          <div class="panel-head"><span class="num">STEP 3</span><h2 id="h3-${S.key}">What Claude will build</h2></div>
+          <div class="panel-body">
+            <div class="files">
+              <div class="file s"><div class="tag">File 1 · .docx</div><h3>Student Booklet</h3>
+                <ul><li>Cover with unit, Area of Study and outcome</li><li>Make It Stick techniques, spacing plan and VCAA command terms</li><li>Per domain: Generate First, Quick Recall, Worked Example, Guided Application, Data Analysis, MCQ, Independent Practice, Reflection</li><li>Interleaved Review and Final Mixed Test with a VCAA-style extended response</li></ul></div>
+              <div class="file t"><div class="tag">File 2 · .docx</div><h3>Teacher Answer Guide</h3>
+                <ul><li>Teacher-only cover and footer</li><li>Quick Recall, MCQ and Guided Application answers</li><li>VCAA-style marking guides with “Responses that scored highly…” notes</li><li>Extended-response rubric and high-scoring sample</li><li>References to the VCAA exam questions each item was adapted from</li></ul></div>
+            </div>
+            <div class="assure">
+              <div><span class="assure-k">Draws on</span><span class="assure-t">Past VCAA exams, examination reports and high-scoring exemplars, which Claude models question style and mark allocations on</span></div>
+              <div><span class="assure-k">Triple fact-check</span><span class="assure-t">1. Content accuracy · 2. Every answer re-worked from scratch · 3. Independent assessor-style review</span></div>
+            </div>
+            <details class="fixed"><summary>View the fixed build instructions <span>Parts C and D · included automatically</span></summary><pre id="${S.key}-fixedView"></pre></details>
+          </div>
+        </section>
+      </div>`).join('');
+
+    Object.values(SUBJECTS).forEach(S => {
+      const k = S.key;
+      [1,2,3,4].forEach(u => $(`${k}-u${u}`).addEventListener('change', () => { const st = state[k]; st.unit = u; st.aos = 0; if (!st.outcomeEdited) st.outcome = ''; renderAos(k); syncOutcome(k); refresh(); }));
+      $(`${k}-outcome`).addEventListener('input', e => { state[k].outcome = e.target.value; state[k].outcomeEdited = true; refresh(); });
+      $(`${k}-reset`).addEventListener('click', () => { state[k].outcomeEdited = false; syncOutcome(k, true); refresh(); status('Outcome reset to the study design wording.'); });
+      ['topic','kk','d1','d2','d3','notes'].forEach(f => $(`${k}-${f}`).addEventListener('input', e => { state[k][f] = e.target.value; refresh(); }));
+    });
+  }
+
+  function renderAos(k){
+    const S = SUBJECTS[k], st = state[k], box = $(`${k}-aos`);
+    if (!st.unit) { box.innerHTML = '<p class="note">Choose a unit first.</p>'; return; }
+    box.innerHTML = S.units[st.unit].aos.map((a, i) => `
+      <input type="radio" name="${k}-aosr" id="${k}-a${i+1}" value="${i+1}" ${st.aos === i+1 ? 'checked' : ''}>
+      <label for="${k}-a${i+1}" class="aos-opt"><span class="aos-n">Area of Study ${i+1} · Outcome ${i+1}</span><span class="aos-t">${esc(a.t)}</span></label>`).join('');
+    S.units[st.unit].aos.forEach((a, i) => $(`${k}-a${i+1}`).addEventListener('change', () => { st.aos = i + 1; if (!st.outcomeEdited) st.outcome = ''; syncOutcome(k); refresh(); }));
+  }
+
+  function syncOutcome(k, force){
+    const S = SUBJECTS[k], st = state[k];
+    if (st.unit && st.aos && (force || !st.outcomeEdited || !st.outcome)) { st.outcome = S.units[st.unit].aos[st.aos - 1].o; st.outcomeEdited = false; }
+    $(`${k}-outcome`).value = st.outcome || '';
+  }
+
+  function fillInputs(k){
+    const st = state[k];
+    [1,2,3,4].forEach(u => $(`${k}-u${u}`).checked = st.unit === u);
+    renderAos(k);
+    $(`${k}-outcome`).value = st.outcome || '';
+    ['topic','kk','d1','d2','d3','notes'].forEach(f => $(`${k}-${f}`).value = st[f] || '');
+  }
+
+  function fixedFor(k, unit){
+    const S = SUBJECTS[k];
+    const ctx = !unit ? 'If the unit is Unit 1 or 2, pitch questions at Year 11 level (school-assessed). If it is Unit 3 or 4, match current VCAA examination style and difficulty.'
+      : unit < 3 ? `Unit ${unit} is school-assessed (Year 11). There is no end-of-year examination for this unit, so pitch questions at Year 11 level while keeping the VCAA style.`
+      : `Unit ${unit} contributes to School-assessed Coursework and the end-of-year VCAA examination, so match current VCAA examination style and difficulty.`;
+    return FIXED.split('{SUBJECT_UPPER}').join(S.upper).split('{SUBJECT}').join(S.name).split('{SHORT}').join(S.short)
+      .split('{EXTRA_TERMS}').join(S.extraTerms).split('{DATA_RULE}').join(S.dataRule).split('{SKILL_DATA}').join(S.skillData)
+      .split('{ASSESS_CONTEXT}').join(ctx);
+  }
+
+  function words(t){ const m = (t || '').trim().match(/\S+/g); return m ? m.length : 0; }
+  function indent(t){ return t.split('\n').map(l => '  ' + l).join('\n'); }
+
+  function buildPrompt(k){
+    k = k || active;
+    const S = SUBJECTS[k], st = state[k];
+    const unitLine = st.unit ? `Unit ${st.unit} — ${S.units[st.unit].title}` : '[not chosen — infer from the notes]';
+    const aosLine = st.unit && st.aos ? `Area of Study ${st.aos} — ${S.units[st.unit].aos[st.aos - 1].t}` : '[not chosen — infer from the notes]';
+    const outcome = (st.outcome || '').trim() || '[not provided — use the outcome from the VCAA study design for this Area of Study]';
+    const topic = (st.topic || '').trim() || '[not provided — choose a short title from the notes]';
+    const kk = (st.kk || '').trim() || '[not provided — use the key knowledge and key skills for this Area of Study in the VCAA study design]';
+    const doms = [1,2,3].map(n => `  Domain ${n}: ${(st['d'+n] || '').trim() || '[Claude to choose]'}`).join('\n');
+    const notes = (st.notes || '').trim() || '[NO NOTES PROVIDED — use the VCAA study design key knowledge for this Area of Study and tell me you did so]';
+    return [
+'################################################################',
+'PART A — YOUR TOPIC',
+'################################################################',
+'',
+`Subject:          ${S.name}`,
+'Study design:     VCAA ' + S.name + ' Study Design (accredited 2025–2029)',
+`Unit:             ${unitLine}`,
+`Area of Study:    ${aosLine}`,
+`Outcome ${st.aos || '[N]'}:        ${outcome}`,
+`Topic focus:      ${topic}`,
+'',
+'Key knowledge and key skills to cover:',
+indent(kk),
+'',
+'Domains (if marked "Claude to choose", group the key knowledge into 2–3 sensible domains):',
+doms,
+'',
+'',
+'################################################################',
+'PART B — YOUR SOURCE NOTES',
+'################################################################',
+'',
+'------------------------- START OF NOTES -------------------------',
+'',
+notes,
+'',
+'-------------------------- END OF NOTES --------------------------',
+'',
+'',
+fixedFor(k, st.unit)
+    ].join('\n');
+  }
+
+  function refresh(){
+    const k = active, S = SUBJECTS[k], st = state[k];
+    const items = [
+      ['Unit', !!st.unit, false],
+      ['Area of Study', !!st.aos, false],
+      ['Outcome statement', !!(st.outcome || '').trim(), false],
+      ['Topic focus', !!(st.topic || '').trim(), false],
+      ['Key knowledge (recommended)', !!(st.kk || '').trim(), true],
+      ['Domains (optional)', !!((st.d1 || '') + (st.d2 || '') + (st.d3 || '')).trim(), true],
+      ['Source notes', words(st.notes) >= 20, false]
+    ];
+    $('checklist').innerHTML = items.map(([t, ok, opt]) => `<li class="${ok ? 'done' : ''} ${opt ? 'opt' : ''}"><i aria-hidden="true">✓</i>${t}</li>`).join('');
+    $(`${k}-wc`).textContent = words(st.notes).toLocaleString() + ' words';
+    const hasV = /vcaa|examination report|exam report|marking guide|sac\b|marks\)/i.test(st.notes || '');
+    const pp = $(`${k}-pp`); pp.textContent = hasV ? 'VCAA-style material included' : 'No VCAA exam material detected yet'; pp.classList.toggle('ok', hasV);
+    $(`${k}-fixedView`).textContent = fixedFor(k, st.unit);
+    $(`${k}-oc-lbl`).textContent = st.outcomeEdited ? 'edited by you — use “Reset” to restore the study design wording' : 'filled in from the study design — edit if your school uses different wording';
+    $('meta').textContent = 'Prompt length: ' + buildPrompt(k).length.toLocaleString() + ' characters';
+    saveState(k);
+  }
+
+  function setActive(k, fromHash){
+    if (!SUBJECTS[k]) k = 'pe';
+    active = k;
+    Object.keys(SUBJECTS).forEach(s => {
+      $('pane-' + s).hidden = s !== k;
+      const tab = $('tab-' + s); tab.classList.toggle('on', s === k); tab.setAttribute('aria-current', s === k ? 'page' : 'false');
+    });
+    document.documentElement.setAttribute('data-subj', k);
+    $('sdText').textContent = SUBJECTS[k].sd;
+    if (!fromHash && location.hash !== '#' + SUBJECTS[k].hash) { try { history.replaceState(null, '', '#' + SUBJECTS[k].hash); } catch(e) { location.hash = SUBJECTS[k].hash; } }
+    $('status').textContent = '';
+    refresh();
+  }
+  function subjFromHash(){ const h = (location.hash || '').replace('#',''); return h === 'vce-hhd' ? 'hhd' : 'pe'; }
+
+  let statusTimer;
+  function status(msg, kind){
+    const s = $('status'); s.textContent = msg; s.className = 'status' + (kind ? ' ' + kind : '');
+    clearTimeout(statusTimer); statusTimer = setTimeout(() => { s.textContent = ''; s.className = 'status'; }, 5000);
+  }
+  function missing(){
+    const st = state[active], m = [];
+    if (!st.unit) m.push('unit'); if (!st.aos) m.push('Area of Study'); if (!(st.topic || '').trim()) m.push('topic focus'); if (words(st.notes) < 20) m.push('notes');
+    return m;
+  }
+  function legacyCopy(text){
+    const ta = document.createElement('textarea'); ta.value = text; ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed'; ta.style.top = '0'; ta.style.left = '0'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch(e) {}
+    document.body.removeChild(ta); return ok;
+  }
+  function copied(){
+    const m = missing();
+    if (m.length) status('Copied, but ' + m.join(', ') + (m.length > 1 ? ' are' : ' is') + ' missing.', 'warn');
+    else status('Copied. Paste it into a new Claude chat.', 'ok');
+  }
+  function manualCopy(){
+    openPreview();
+    const range = document.createRange(); range.selectNodeContents($('pvText'));
+    const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+    status('Your browser blocked copying. The prompt is selected — press Ctrl+C (or ⌘C).', 'warn');
+  }
+  function copy(){
+    const text = buildPrompt();
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(copied, () => { if (legacyCopy(text)) copied(); else manualCopy(); });
+    } else if (legacyCopy(text)) copied(); else manualCopy();
+  }
+  function openPreview(){ $('pvText').textContent = buildPrompt(); $('preview').hidden = false; $('pvClose').focus(); }
+  function closePreview(){ $('preview').hidden = true; $('previewBtn').focus(); }
+
+  // init
+  renderForms();
+  Object.keys(SUBJECTS).forEach(s => { state[s] = loadState(s); fillInputs(s); });
+  Object.keys(SUBJECTS).forEach(s => $('tab-' + s).addEventListener('click', e => { e.preventDefault(); setActive(s); }));
+  window.addEventListener('hashchange', () => setActive(subjFromHash(), true));
+  $('copyBtn').addEventListener('click', copy);
+  $('pvCopy').addEventListener('click', copy);
+  $('previewBtn').addEventListener('click', openPreview);
+  $('pvClose').addEventListener('click', closePreview);
+  $('preview').addEventListener('click', e => { if (e.target.id === 'preview') closePreview(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('preview').hidden) closePreview(); });
+  $('exampleBtn').addEventListener('click', () => {
+    const S = SUBJECTS[active], ex = S.example;
+    state[active] = Object.assign(blank(active), { unit: ex.unit, aos: ex.aos, topic: ex.topic, kk: ex.kk, d1: ex.d[0], d2: ex.d[1], d3: ex.d[2], notes: ex.notes });
+    fillInputs(active); syncOutcome(active, true); refresh();
+    status(`Example loaded (Unit ${ex.unit} AoS ${ex.aos}). Replace it with your own topic.`);
+  });
+  let armed = false;
+  $('clearBtn').addEventListener('click', () => {
+    if (!armed) { armed = true; $('clearBtn').textContent = 'Click again to clear'; setTimeout(() => { armed = false; $('clearBtn').textContent = 'Clear this subject'; }, 3000); return; }
+    armed = false; $('clearBtn').textContent = 'Clear this subject';
+    state[active] = blank(active); fillInputs(active); refresh(); status('This subject has been cleared.');
+  });
+  setActive(subjFromHash(), true);
+})();
+</script>
+
+</body>
+</html>
